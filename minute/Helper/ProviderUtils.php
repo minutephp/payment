@@ -13,6 +13,7 @@ namespace Minute\Helper {
     use Minute\Event\ImportEvent;
     use Minute\Http\HttpRequestEx;
     use Minute\Resolver\Resolver;
+    use Minute\Utils\PathUtils;
 
     class ProviderUtils {
         /**
@@ -27,6 +28,10 @@ namespace Minute\Helper {
          * @var Resolver
          */
         private $resolver;
+        /**
+         * @var PathUtils
+         */
+        private $utils;
 
         /**
          * ProviderHelper constructor.
@@ -34,17 +39,19 @@ namespace Minute\Helper {
          * @param Config $config
          * @param HttpRequestEx $request
          * @param Resolver $resolver
+         * @param PathUtils $utils
          */
-        public function __construct(Config $config, HttpRequestEx $request, Resolver $resolver) {
+        public function __construct(Config $config, HttpRequestEx $request, Resolver $resolver, PathUtils $utils) {
             $this->config   = $config;
             $this->request  = $request;
             $this->resolver = $resolver;
+            $this->utils    = $utils;
         }
 
         public function iterateProviders() {
             if ($folders = $this->resolver->find('Minute\Provider')) {
                 foreach ($folders as $folder) {
-                    $classes = array_map(function ($f) { return pathinfo($f, PATHINFO_FILENAME); }, glob("$folder/*.php"));
+                    $classes = array_map(function ($f) { return $this->utils->filename($f); }, glob("$folder/*.php"));
 
                     foreach ($classes as $name) {
                         $class = "Minute\\Provider\\$name";

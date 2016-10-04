@@ -11,6 +11,7 @@ namespace Minute\Payment {
     use Minute\Event\ImportEvent;
     use Minute\Helper\ProviderUtils;
     use Minute\Interfaces\Provider;
+    use Minute\Utils\PathUtils;
 
     class ProviderInfo {
         /**
@@ -25,6 +26,10 @@ namespace Minute\Payment {
          * @var Config
          */
         private $config;
+        /**
+         * @var PathUtils
+         */
+        private $utils;
 
         /**
          * ProviderInfo constructor.
@@ -32,11 +37,13 @@ namespace Minute\Payment {
          * @param ProviderUtils $providerUtils
          * @param Injector $injector
          * @param Config $config
+         * @param PathUtils $utils
          */
-        public function __construct(ProviderUtils $providerUtils, Injector $injector, Config $config) {
+        public function __construct(ProviderUtils $providerUtils, Injector $injector, Config $config, PathUtils $utils) {
             $this->providerUtils = $providerUtils;
             $this->injector      = $injector;
             $this->config        = $config;
+            $this->utils         = $utils;
         }
 
         public function describe(ImportEvent $event) {
@@ -44,7 +51,7 @@ namespace Minute\Payment {
 
             foreach ($classes as $class) {
                 /** @var Provider $provider */
-                $name      = pathinfo($class, PATHINFO_FILENAME);
+                $name      = $this->utils->filename($class);
                 $urls      = $this->providerUtils->getURLs($name);
                 $provider  = $this->injector->make($class);
                 $enabled   = $this->config->get("processors/$name/enabled", false);
